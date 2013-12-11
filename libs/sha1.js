@@ -2,17 +2,22 @@ var assert = require('assert')
   , util = require('util')
   ;
 
-exports.sha1 = function(message, m1) {
+exports.sha1 = function(message, results) {
   var out = message;
   //console.log(m1);
 
   // Initialize constants
-  var h = new Buffer(20);
-  h.writeUInt32BE(0x67452301, 0);
-  h.writeUInt32BE(0xEFCDAB89, 4);
-  h.writeUInt32BE(0x98BADCFE, 8);
-  h.writeUInt32BE(0x10325476,12);
-  h.writeUInt32BE(0xC3D2E1F0,16);
+  var h = [];
+  h[0] = 0x67452301;
+  h[1] = 0xEFCDAB89;
+  h[2] = 0x98BADCFE;
+  h[3] = 0x10325476;
+  h[4] = 0xC3D2E1F0;
+
+  // Break message into results.m 512-bit (64 byte) chunks
+  for (var i=0; i<message.length; i+=64) {
+    
+  }
 
   return out;
 };
@@ -25,8 +30,8 @@ exports.preread_sha1 = function(fsize) {
   // of the message plus the 64-bit message length is a multiple of 512 bits.
   // There is an xeZ s.t. (fsize+x+64+1)%512==0 => fsize+x+1+64==512*m meZ 
   // => x==512*m-fsize-65.
-  var m = Math.ceil((numbits+65)/512);
-  var x = 512*m-numbits-65;
+  var m = Math.ceil((numbits+65)/512); // # of 512-bit chunks in message
+  var x = 512*m-numbits-65;            // # of '0's to pad message to 512m-64
 
   assert.equal((((x+1)/8)%1), 0, 'x+1 must be a multiple of 8');
 
