@@ -1,25 +1,96 @@
 var assert = require('assert')
   , util = require('util')
+  , common = require('./common')
   ;
 
+// This function calculates the hash value of a given 512-bit chunk.
+var sha1_chunk_hash = function(w, h) {
+  // Initialize the  hash values for this chunk:
+  var a = h[0];
+  var b = h[1]; 
+  var c = h[2]; 
+  var d = h[3]; 
+  var e = h[4]; 
+  var f = 0; 
+  var k = 0; 
+  var temp = 0;
+
+  // Main loop
+  var i = 0;
+  for (i=0; i<80; i++) {
+    
+    if (i>=0 && i<20) {
+      f = (b & c) | ((!b) & d);
+      k = 0x5A827999;
+    }
+    if (i>=20 && i<40) {
+      f = b ^ c ^ d;
+      k = 0x6ED9EBA1;
+    }
+    if (i>=40 && i<60) {
+      f = (b & c) | (b & d) | (c & d);
+      k = 0x8F1BBCDC;
+    }
+    if (i>=60 && i<80) {
+      f = b ^ c ^ d;
+      k = 0xCA62C1D6;
+    }
+
+    temp = common.rotl32(a, 5) + f + e + k + w[i];
+    e = d;
+    d = c;
+    c = common.rotl32(b, 30);
+    b = a;
+    a = temp;
+  }
+  // Return result
+  return {a: a, b: b, c: c, d: d, e: e};
+};
+
 exports.sha1 = function(message, results) {
-  var out = message;
-  //console.log(m1);
+  console.log(results);
 
   // Initialize constants
-  var h = [];
-  h.writeUInt32BE(0x67452301, 0);
-  h.writeUInt32BE(0xEFCDAB89, 4);
-  h.writeUInt32BE(0x98BADCFE, 8);
-  h.writeUInt32BE(0x10325476,12);
-  h.writeUInt32BE(0xC3D2E1F0,16);
+  var h = [], ret = {};
+  h[0] = 0x67452301;
+  h[1] = 0xEFCDAB89;
+  h[2] = 0x98BADCFE;
+  h[3] = 0x10325476;
+  h[4] = 0xC3D2E1F0;
 
   // Break message into results.m 512-bit (64 byte) chunks
-  for (var i=0; i<message.length; i+=64) {
-    
+  var i = 0, j = 0, w = [];
+  for (i=0; i<message.length; i+=64) {
+    console.log(JSON.stringify(h));
+    // Initialize buffer with room for 80 32-bit integers
+    w = [];
+    // Break each message chunk into 16 32-bit chunks
+    for (j=i; j<i+64; j+=4) {
+      w[j-i] = message.readUInt32BE(j);
+    }
+
+    // Extend those 16 chunks into 80 chunks
+    for (j=16; j<80; j++) {
+      w[j] = common.rotl32((w[j-3] ^ w[j-8] ^ w[j-14] ^ w[j-16]), 1);
+    }
+
+    // Execute main loop for this chunk
+    ret = sha1_chunk_hash(w, h); 
+
+    // Add this chunk's hash to the result
+    h[0] = (h[0] + (ret.a % 0xffffffff)) % 0xffffffff;
+    h[1] = (h[1] + (ret.b % 0xffffffff)) % 0xffffffff;
+    h[2] = (h[2] + (ret.c % 0xffffffff)) % 0xffffffff;
+    h[3] = (h[3] + (ret.d % 0xffffffff)) % 0xffffffff;
+    h[4] = (h[4] + (ret.e % 0xffffffff)) % 0xffffffff;
   }
 
-  return out;
+  // Calculate the 160-bit final hash value 
+  var hh = new Buffer(20);
+  for (i=0,j=0; i<hh.length; i+=4,j++) {
+    console.log(util.format('%d %d', i, j));
+    hh.writeUInt32BE(h[j], i);
+  }
 };
 
 exports.preread_sha1 = function(fsize) {
