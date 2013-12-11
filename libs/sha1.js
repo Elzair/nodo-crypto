@@ -8,11 +8,11 @@ exports.sha1 = function(message, results) {
 
   // Initialize constants
   var h = [];
-  h[0] = 0x67452301;
-  h[1] = 0xEFCDAB89;
-  h[2] = 0x98BADCFE;
-  h[3] = 0x10325476;
-  h[4] = 0xC3D2E1F0;
+  h.writeUInt32BE(0x67452301, 0);
+  h.writeUInt32BE(0xEFCDAB89, 4);
+  h.writeUInt32BE(0x98BADCFE, 8);
+  h.writeUInt32BE(0x10325476,12);
+  h.writeUInt32BE(0xC3D2E1F0,16);
 
   // Break message into results.m 512-bit (64 byte) chunks
   for (var i=0; i<message.length; i+=64) {
