@@ -1,16 +1,17 @@
 var assert = require('assert')
   , util = require('util')
+  , stringformat = require('stringformat')
   , common = require('./common')
   ;
 
 // This function calculates the hash value of a given 512-bit chunk.
 var sha1_chunk_hash = function(w, h) {
   // Initialize the  hash values for this chunk:
-  var a = h[0];
-  var b = h[1]; 
-  var c = h[2]; 
-  var d = h[3]; 
-  var e = h[4]; 
+  var a = h.readUInt32BE(0);
+  var b = h.readUInt32BE(1); 
+  var c = h.readUInt32BE(2); 
+  var d = h.readUInt32BE(3); 
+  var e = h.readUInt32BE(4); 
   var f = 0; 
   var k = 0; 
   var temp = 0;
@@ -18,7 +19,6 @@ var sha1_chunk_hash = function(w, h) {
   // Main loop
   var i = 0;
   for (i=0; i<80; i++) {
-    
     if (i>=0 && i<20) {
       f = (b & c) | ((!b) & d);
       k = 0x5A827999;
@@ -36,10 +36,10 @@ var sha1_chunk_hash = function(w, h) {
       k = 0xCA62C1D6;
     }
 
-    temp = common.rotl32(a, 5) + f + e + k + w[i];
+    temp = (common.rotl32(a, 5) + f + e + k + w.readUInt32BE(i)) & 0xffffffff;
     e = d;
     d = c;
-    c = common.rotl32(b, 30);
+    c = common.rotl32(b, 30) & 0xffffffff;
     b = a;
     a = temp;
   }
@@ -47,50 +47,56 @@ var sha1_chunk_hash = function(w, h) {
   return {a: a, b: b, c: c, d: d, e: e};
 };
 
-exports.sha1 = function(message, results) {
-  console.log(results);
-
+exports.sha1 = function(message) {
+  var xx = 0x08FFDDCC;
+  console.log(stringformat('{0:32}', xx.toString(2)));
+  console.log(stringformat('{0:32}', common.rotl32(xx, 4).toString(2)));
   // Initialize constants
-  var h = [], ret = {};
-  h[0] = 0x67452301;
-  h[1] = 0xEFCDAB89;
-  h[2] = 0x98BADCFE;
-  h[3] = 0x10325476;
-  h[4] = 0xC3D2E1F0;
+  var ret = null;
+  var h = new Buffer(20); 
+  h.writeUInt32BE(0x67452301, 0);
+  h.writeUInt32BE(0xEFCDAB89, 4);
+  h.writeUInt32BE(0x98BADCFE, 8);
+  h.writeUInt32BE(0x10325476,12);
+  h.writeUInt32BE(0xC3D2E1F0,16);
 
   // Break message into results.m 512-bit (64 byte) chunks
   var i = 0, j = 0, w = [];
   for (i=0; i<message.length; i+=64) {
     console.log(JSON.stringify(h));
-    // Initialize buffer with room for 80 32-bit integers
-    w = [];
+    // Initialize buffer with room for 80 32-bit (4 byte) integers
+    w = new Buffer(80*4);
     // Break each message chunk into 16 32-bit chunks
     for (j=i; j<i+64; j+=4) {
-      w[j-i] = message.readUInt32BE(j);
+      w.writeUInt32BE(message.readUInt32BE(j), j-i);
     }
 
     // Extend those 16 chunks into 80 chunks
-    for (j=16; j<80; j++) {
-      w[j] = common.rotl32((w[j-3] ^ w[j-8] ^ w[j-14] ^ w[j-16]), 1);
+    for (j=16*4; j<80*4; j++) {
+      console.log(stringformat('{0:32}', (w.readUInt32BE(j-3)^w.readUInt32BE(j-8)^w.readUInt32BE(j-14)^w.readUInt32BE(j-16)).toString(2)));
+      console.log(stringformat('{0:32}', common.rotl32(w.readUInt32BE(j-3) ^ w.readUInt32BE(j-8) ^w.readUInt32BE(j-14) ^ w.readUInt32BE(j-16), 1).toString(2)));
+      w.writeUInt32BE(common.rotl32(w.readUInt32BE(j-3) ^ w.readUInt32BE(j-8) ^
+        w.readUInt32BE(j-14) ^ w.readUInt32BE(j-16), 1), j);
     }
 
     // Execute main loop for this chunk
     ret = sha1_chunk_hash(w, h); 
 
     // Add this chunk's hash to the result
-    h[0] = (h[0] + (ret.a % 0xffffffff)) % 0xffffffff;
-    h[1] = (h[1] + (ret.b % 0xffffffff)) % 0xffffffff;
-    h[2] = (h[2] + (ret.c % 0xffffffff)) % 0xffffffff;
-    h[3] = (h[3] + (ret.d % 0xffffffff)) % 0xffffffff;
-    h[4] = (h[4] + (ret.e % 0xffffffff)) % 0xffffffff;
+    h.writeUInt32BE((h.readUInt32BE(0) + ret.a) & 0xffffffff, 0);
+    h.writeUInt32BE((h.readUInt32BE(1) + ret.b) & 0xffffffff, 1);
+    h.writeUInt32BE((h.readUInt32BE(2) + ret.c) & 0xffffffff, 2);
+    h.writeUInt32BE((h.readUInt32BE(3) + ret.d) & 0xffffffff, 3);
+    h.writeUInt32BE((h.readUInt32BE(4) + ret.e) & 0xffffffff, 4);
   }
 
   // Calculate the 160-bit final hash value 
-  var hh = new Buffer(20);
-  for (i=0,j=0; i<hh.length; i+=4,j++) {
-    console.log(util.format('%d %d', i, j));
-    hh.writeUInt32BE(h[j], i);
-  }
+  //var hh = new Buffer(20);
+  //for (i=0,j=0; i<hh.length; i+=4,j++) {
+  //  console.log(util.format('%d %d', i, j));
+  //  hh.writeUInt32BE(h[j], i);
+  //}
+  return h;
 };
 
 exports.preread_sha1 = function(fsize) {
@@ -126,7 +132,7 @@ exports.postread_sha1 = function(buff, results, numbytes) {
   // Append the 64-bit message length to the end of the buffer
   buff.writeUInt32BE(results.m1, numbytes+i+4);
 
-  console.log(JSON.stringify(buff));
+  //console.log(JSON.stringify(buff));
   return {buff: buff};
 };
 

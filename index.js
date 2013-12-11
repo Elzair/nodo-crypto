@@ -30,7 +30,7 @@ var open_file = function(path) {
 
         var post_results = sha1.postread_sha1(buff, results, fsize);
 
-        var out = sha1.sha1(post_results.buff, results.m1);
+        var out = sha1.sha1(post_results.buff);
         console.log(out.toString());
       });
     });
