@@ -63,7 +63,7 @@ exports.sha1 = function(message) {
   // Break message into results.m 512-bit (64 byte) chunks
   var i = 0, j = 0, w = [];
   for (i=0; i<message.length; i+=64) {
-    console.log(JSON.stringify(h));
+    //console.log(JSON.stringify(h));
     // Initialize buffer with room for 80 32-bit (4 byte) integers
     w = new Buffer(80*4);
     // Break each message chunk into 16 32-bit chunks
@@ -73,8 +73,8 @@ exports.sha1 = function(message) {
 
     // Extend those 16 chunks into 80 chunks
     for (j=16*4; j<80*4; j++) {
-      console.log(stringformat('{0:32}', (w.readUInt32BE(j-3)^w.readUInt32BE(j-8)^w.readUInt32BE(j-14)^w.readUInt32BE(j-16)).toString(2)));
-      console.log(stringformat('{0:32}', common.rotl32(w.readUInt32BE(j-3) ^ w.readUInt32BE(j-8) ^w.readUInt32BE(j-14) ^ w.readUInt32BE(j-16), 1).toString(2)));
+      //console.log(stringformat('{0:32}', (w.readUInt32BE(j-3)^w.readUInt32BE(j-8)^w.readUInt32BE(j-14)^w.readUInt32BE(j-16)).toString(2)));
+      //console.log(stringformat('{0:32}', common.rotl32(w.readUInt32BE(j-3) ^ w.readUInt32BE(j-8) ^w.readUInt32BE(j-14) ^ w.readUInt32BE(j-16), 1).toString(2)));
       w.writeUInt32BE(common.rotl32(w.readUInt32BE(j-3) ^ w.readUInt32BE(j-8) ^
         w.readUInt32BE(j-14) ^ w.readUInt32BE(j-16), 1), j);
     }
