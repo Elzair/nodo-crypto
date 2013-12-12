@@ -36,7 +36,8 @@ var sha1_chunk_hash = function(w, h) {
       k = 0xCA62C1D6;
     }
 
-    temp = (common.rotl32(a, 5) + f + e + k + w.readUInt32BE(i)) & 0xffffffff;
+    temp = common.add(common.rotl32(a, 5), f, e, k, w.readUInt32BE(i)) & 0xffffffff;
+    //temp = common.add(common.rotl32(a, 5), f, e, k, w.readUInt32BE(i));
     e = d;
     d = c;
     c = common.rotl32(b, 30) & 0xffffffff;
@@ -48,9 +49,6 @@ var sha1_chunk_hash = function(w, h) {
 };
 
 exports.sha1 = function(message) {
-  var xx = 0x08FFDDCC;
-  console.log(stringformat('{0:32}', xx.toString(2)));
-  console.log(stringformat('{0:32}', common.rotl32(xx, 4).toString(2)));
   // Initialize constants
   var ret = null;
   var h = new Buffer(20); 
@@ -72,22 +70,28 @@ exports.sha1 = function(message) {
     }
 
     // Extend those 16 chunks into 80 chunks
-    for (j=16*4; j<80*4; j++) {
-      //console.log(stringformat('{0:32}', (w.readUInt32BE(j-3)^w.readUInt32BE(j-8)^w.readUInt32BE(j-14)^w.readUInt32BE(j-16)).toString(2)));
-      //console.log(stringformat('{0:32}', common.rotl32(w.readUInt32BE(j-3) ^ w.readUInt32BE(j-8) ^w.readUInt32BE(j-14) ^ w.readUInt32BE(j-16), 1).toString(2)));
+    for (j=16*4; j<80*4; j+=4) {
       w.writeUInt32BE(common.rotl32(w.readUInt32BE(j-3) ^ w.readUInt32BE(j-8) ^
         w.readUInt32BE(j-14) ^ w.readUInt32BE(j-16), 1), j);
     }
 
     // Execute main loop for this chunk
     ret = sha1_chunk_hash(w, h); 
+    //var xx = (h.readUInt32BE(1) + ret.b) % 0xffffffff;
+    //xx = common.add(h.readUInt32BE(1), ret.b);
+    //console.log(xx.toString(16));
 
     // Add this chunk's hash to the result
-    h.writeUInt32BE((h.readUInt32BE(0) + ret.a) & 0xffffffff, 0);
-    h.writeUInt32BE((h.readUInt32BE(1) + ret.b) & 0xffffffff, 1);
-    h.writeUInt32BE((h.readUInt32BE(2) + ret.c) & 0xffffffff, 2);
-    h.writeUInt32BE((h.readUInt32BE(3) + ret.d) & 0xffffffff, 3);
-    h.writeUInt32BE((h.readUInt32BE(4) + ret.e) & 0xffffffff, 4);
+    h.writeUInt32BE(common.add(h.readUInt32BE(0), ret.a), 0);
+    h.writeUInt32BE(common.add(h.readUInt32BE(1), ret.b), 1);
+    h.writeUInt32BE(common.add(h.readUInt32BE(2), ret.c), 2);
+    h.writeUInt32BE(common.add(h.readUInt32BE(3), ret.d), 3);
+    h.writeUInt32BE(common.add(h.readUInt32BE(4), ret.e), 4);
+    //h.writeUInt32BE(h.readUInt32BE(0) + ret.a, 0);
+    //h.writeUInt32BE(h.readUInt32BE(1) + ret.b, 1);
+    //h.writeUInt32BE(h.readUInt32BE(2) + ret.c, 2);
+    //h.writeUInt32BE(h.readUInt32BE(3) + ret.d, 3);
+    //h.writeUInt32BE(h.readUInt32BE(4) + ret.e, 4);
   }
 
   // Calculate the 160-bit final hash value 
