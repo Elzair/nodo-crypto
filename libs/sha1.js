@@ -52,11 +52,11 @@ exports.sha1 = function(message) {
   // Initialize constants
   var ret = null;
   var h = new Buffer(20); 
-  h.writeUInt32BE(0x67452301, 0);
-  h.writeUInt32BE(0xEFCDAB89, 4);
-  h.writeUInt32BE(0x98BADCFE, 8);
-  h.writeUInt32BE(0x10325476,12);
-  h.writeUInt32BE(0xC3D2E1F0,16);
+  h.writeUInt32BE(parseInt('67452301', 16), 0);
+  h.writeUInt32BE(parseInt('EFCDAB89', 16), 4);
+  h.writeUInt32BE(parseInt('98BADCFE', 16), 8);
+  h.writeUInt32BE(parseInt('10325476', 16),12);
+  h.writeUInt32BE(parseInt('C3D2E1F0', 16),16);
 
   // Break message into results.m 512-bit (64 byte) chunks
   var i = 0, j = 0, w = [];
