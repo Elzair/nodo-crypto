@@ -19,7 +19,7 @@ var open_file = function(path) {
       var results = sha1.preread_sha1(fsize);
 
       // Initialize file buffer to size of file in bytes
-      var buff = new Buffer(results.bsize);
+      var buff = new Buffer(results.hsize);
       buff.fill(0);
 
       // Read file into new buffer

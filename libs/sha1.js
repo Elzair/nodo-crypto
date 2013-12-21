@@ -116,7 +116,7 @@ exports.preread_sha1 = function(fsize) {
   // Get size of padded message in bits
   var m1 = 512*m;
 
-  return {m: m, x: x, m1: m1, bsize: m1/8};
+  return {m: m, x: x, m1: m1, hsize: m1/8};
 };
 
 // Append bit '1' followed by results.x # of '0' bits such that the length
