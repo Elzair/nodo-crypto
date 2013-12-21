@@ -4,30 +4,6 @@ var assert = require('assert')
   , common = require('./common')
   ;
 
-var printarr = function(arr, base) {
-  var i, j;
-  var out = '[ ';
-  if (Array.isArray(arr)) {
-    for (i=0; i<arr.length-1; i++) {
-      out = out + arr[i].toString(base) + ', ';
-    }
-    out = out + arr[i].toString(base) + ' ]';
-  }
-  else {
-    j = 0;
-    for (i in arr) {
-      if (arr.hasOwnProperty(i)) {
-        if (j < arr.length-1) {
-          out = out + arr[i].toString(base) + ', ';
-        }
-        else {
-          out = out + arr[i].toString(base) + ' ]';
-        }
-      }
-    }
-  }
-  return out;
-};
 
 // This function calculates the hash value of a given 512-bit chunk.
 var sha1_hash_loop = function(w, h) {
@@ -71,7 +47,7 @@ var sha1_hash_loop = function(w, h) {
   }
   // Return result
   var ret = {a: a, b: b, c: c, d: d, e: e};
-  //console.log(printarr(ret,16));
+  //console.log(common.printarr(ret,16));
   return ret;
 };
 
@@ -84,7 +60,7 @@ exports.sha1 = function(message) {
   h[2] = 0x98BADCFE;
   h[3] = 0x10325476;
   h[4] = 0xC3D2E1F0;
-  console.log(printarr(h,16));
+  console.log(common.printarr(h,16));
 
   // Break message into results.m 512-bit (64 byte) chunks
   var i = 0, j = 0, w = [];
@@ -108,7 +84,7 @@ exports.sha1 = function(message) {
     h[2] = (h[2] + ret.c) % 0x100000000;
     h[3] = (h[3] + ret.d) % 0x100000000;
     h[4] = (h[4] + ret.e) % 0x100000000;
-    //console.log(printarr(h,16));
+    //console.log(common.printarr(h,16));
   }
 
   // Calculate the 160-bit final hash value 

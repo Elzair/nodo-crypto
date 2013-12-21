@@ -16,6 +16,31 @@ exports.rotr32 = function(value, shift) {
   return parseInt(val.slice(0, shift) + val.slice(shift), 2);
 };
 
+exports.printarr = function(arr, base) {
+  var i, j;
+  var out = '[ ';
+  if (Array.isArray(arr)) {
+    for (i=0; i<arr.length-1; i++) {
+      out = out + arr[i].toString(base) + ', ';
+    }
+    out = out + arr[i].toString(base) + ' ]';
+  }
+  else {
+    j = 0;
+    for (i in arr) {
+      if (arr.hasOwnProperty(i)) {
+        if (j < arr.length-1) {
+          out = out + arr[i].toString(base) + ', ';
+        }
+        else {
+          out = out + arr[i].toString(base) + ' ]';
+        }
+      }
+    }
+  }
+  return out;
+};
+
 exports.add = function() {
   var first = true;
   var sum = '00000000000000000000000000000000';
