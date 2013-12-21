@@ -121,7 +121,7 @@ exports.preread_sha1 = function(fsize) {
 
 // Append bit '1' followed by results.x # of '0' bits such that the length
 // of the message plus 64 is a multiple of 512. Then append a 64-bit
-// integer representing the length of the message in bits.
+// integer representing the original length of the message in bits.
 exports.postread_sha1 = function(buff, results, numbytes) {
   // Make first byte after message 0x80 (10000000)
   var n = 0x80, i=0;
@@ -131,7 +131,7 @@ exports.postread_sha1 = function(buff, results, numbytes) {
   }
 
   // Append the 64-bit message length to the end of the buffer
-  buff.writeUInt32BE(results.m1, numbytes+i+4);
+  buff.writeUInt32BE(numbytes, numbytes+i+4);
 
   //console.log(JSON.stringify(buff));
   return {buff: buff};
