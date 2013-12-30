@@ -60,3 +60,14 @@ exports.printarr = function(arr, base, numpad, isbare) {
   }
   return out;
 };
+
+/**
+ * NOTE: This function was derived from the JSHashes code.
+ * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+ * to work around bugs in some JS interpreters.
+ */
+exports.safe_add = function(x, y) {
+  var lsw = (x & 0xFFFF) + (y & 0xFFFF),
+      msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+  return (msw << 16) | (lsw & 0xFFFF);
+};
