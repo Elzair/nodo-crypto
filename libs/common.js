@@ -16,65 +16,47 @@ exports.rotr32 = function(value, shift) {
   return parseInt(val.slice(0, shift) + val.slice(shift), 2);
 };
 
-exports.printarr = function(arr, base) {
-  var i, j;
-  var out = '[ ';
-  if (Array.isArray(arr)) {
+// Pad start of string with zeroes until it has a length of len
+var zpad = function(str, len) {
+  var out = '';
+  var i = 0;
+  if (str.length >= len) {
+    return str;
+  }
+  for (i=0; i<(len-str.length); i++) {
+    out += '0';
+  }
+  //return new Array(len-str.length).join('0') + str;
+  out += str;
+  //console.log(util.format("%s %s", str, out));
+  return out;
+};
+exports.zpad = zpad;
+
+exports.printarr = function(arr, base, numpad, isbare) {
+  var i=0, j=0;
+  base = base || 16;
+  numpad = numpad || 8;
+  var bare = isbare || false;
+  var out = bare ? '' : '[ ';
+  if (Array.isArray(arr) || Buffer.isBuffer(arr)) {
     for (i=0; i<arr.length-1; i++) {
-      out = out + arr[i].toString(base) + ', ';
+      out = out + zpad(arr[i].toString(base), numpad) + (bare ? '' : ', ');
     }
-    out = out + arr[i].toString(base) + ' ]';
+    out = out + zpad(arr[i].toString(base), numpad) + (bare ? '' : ' ]');
   }
   else {
-    j = 0;
     for (i in arr) {
       if (arr.hasOwnProperty(i)) {
-        if (j < arr.length-1) {
-          out = out + arr[i].toString(base) + ', ';
+        if (j < Object.keys(arr).length-1) {
+          out = out + zpad(arr[i].toString(base), numpad) + (bare ? '' : ', ');
         }
         else {
-          out = out + arr[i].toString(base) + ' ]';
+          out = out + zpad(arr[i].toString(base), numpad) + (bare ? '' : ' ]');
         }
+        j++;
       }
     }
   }
   return out;
-};
-
-exports.add = function() {
-  var first = true;
-  var sum = '00000000000000000000000000000000';
-  var s = '', ss = '', sss = '', new_sum = '';
-  var arg = 0, i = 0, j = 0;
-  var c = 0, p;
-  var args = [];
-  debugger;
-  for (arg in arguments) {
-    if (arguments.hasOwnProperty(arg)) {
-      args[i++] = arguments[arg];
-    }
-  }
-  for (i=0; i<args.length; i++) {
-    //output = output + (first ? '' : ' + ') + stringformat('{0:32}', arguments[arg].toString(2));
-    s = args[i].toString(2);
-    ss = '';
-    for (j=0; j<(32-s.length); j++) {
-      ss += '0';
-    }
-    sss = ss + s;
-    //console.log((first ? '  ' : '+ ') + stringformat('{0:32}', sss));
-    first = false;
-    c = 0;
-    new_sum = '';
-    for (j=31; j>=0; j--) {
-      p = parseInt(sss.charAt(j),2) + parseInt(sum.charAt(j),2) + c;
-      c = (p >= 2) ? 1 : 0;
-      new_sum = (p % 2).toString(2) + new_sum;
-    }
-    sum = new_sum;
-  }
-  //console.log('----------------------------------');
-  //console.log(stringformat('  {0:32}', sum));
-  //console.log(output);
-  return parseInt(sum, 2);
 };
