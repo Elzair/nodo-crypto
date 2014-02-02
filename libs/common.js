@@ -3,17 +3,17 @@ var util = require('util')
   ;
 
 exports.rotl32 = function(value, shift) {
-  //return (value << shift) | (value >>> (32 - shift));
-  shift = shift % value;
-  var val = value.toString(2);
-  return parseInt(val.slice(shift) + val.slice(0, shift), 2);
+  return (value << shift) | (value >>> (32 - shift));
+  //shift = shift % value;
+  //var val = value.toString(2);
+  //return parseInt(val.slice(shift) + val.slice(0, shift), 2);
 };
 
 exports.rotr32 = function(value, shift) {
-  //return (value >>> shift) | (value << (32 - shift));
-  shift = shift % value;
-  var val = value.toString(2);
-  return parseInt(val.slice(0, shift) + val.slice(shift), 2);
+  return (value >>> shift) | (value << (32 - shift));
+  //shift = shift % value;
+  //var val = value.toString(2);
+  //return parseInt(val.slice(0, shift) + val.slice(shift), 2);
 };
 
 // Pad start of string with zeroes until it has a length of len
@@ -69,5 +69,11 @@ exports.printarr = function(arr, base, numpad, isbare) {
 exports.safe_add = function(x, y) {
   var lsw = (x & 0xFFFF) + (y & 0xFFFF),
       msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+  return (msw << 16) | (lsw & 0xFFFF);
+};
+
+exports.and = function(x, y) {
+  var lsw = (x & 0xFFFF) & (y & 0xFFFF),
+      msw = (x >>> 16) & (y >>> 16) & 0xFFFF;
   return (msw << 16) | (lsw & 0xFFFF);
 };

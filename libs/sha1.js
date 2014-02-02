@@ -16,13 +16,13 @@ var sha1_hash_loop = function(w, h) {
   var f = 0; 
   var k = 0; 
   var temp = 0;
-
   // Main loop
   var i = 0;
   console.log('\tA \t\tB \t\tC \t\tD \t\tE');
+  debugger;
   for (i=0; i<80; i++) {
     if (i>=0 && i<20) {
-      f = ((b & c) | ((~b) & d)) % 0x100000000;
+      f = (common.and(b, c) | ((~b) & d)) % 0x100000000;
       k = 0x5A827999;
     }
     if (i>=20 && i<40) {
@@ -30,7 +30,7 @@ var sha1_hash_loop = function(w, h) {
       k = 0x6ED9EBA1;
     }
     if (i>=40 && i<60) {
-      f = ((b & c) | (b & d) | (c & d)) % 0x100000000;
+      f = (common.and(b, c) | (b & d) | (c & d)) % 0x100000000;
       k = 0x8F1BBCDC;
     }
     if (i>=60 && i<80) {
