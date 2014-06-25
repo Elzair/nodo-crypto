@@ -4,16 +4,10 @@ var util = require('util')
 
 exports.rotl32 = function(value, shift) {
   return (value << shift) | (value >>> (32 - shift));
-  //shift = shift % value;
-  //var val = value.toString(2);
-  //return parseInt(val.slice(shift) + val.slice(0, shift), 2);
 };
 
 exports.rotr32 = function(value, shift) {
   return (value >>> shift) | (value << (32 - shift));
-  //shift = shift % value;
-  //var val = value.toString(2);
-  //return parseInt(val.slice(0, shift) + val.slice(shift), 2);
 };
 
 // Pad start of string with zeroes until it has a length of len
@@ -26,9 +20,7 @@ var zpad = function(str, len) {
   for (i=0; i<(len-str.length); i++) {
     out += '0';
   }
-  //return new Array(len-str.length).join('0') + str;
   out += str;
-  //console.log(util.format("%s %s", str, out));
   return out;
 };
 exports.zpad = zpad;
