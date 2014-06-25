@@ -4,6 +4,14 @@ var assert = require('assert')
   , common = require('./common')
   ;
 
+var f_func = function(s, x, y, z) {
+  switch(s) {
+    case 0: return (x & y) ^ (~x & z);
+    case 1: return x ^ y ^ z;
+    case 2: return (x & y) ^ (x & z) ^ (y & z);
+    case 3: return x ^ y ^ z;
+  }
+};
 
 // This function calculates the hash value of a given 512-bit chunk.
 var sha1_hash_loop = function(w, h) {
@@ -14,36 +22,20 @@ var sha1_hash_loop = function(w, h) {
   var d = h[3]; 
   var e = h[4]; 
   var f = 0; 
-  var k = 0; 
-  var temp = 0;
-  // Main loop
-  var i = 0;
-  console.log('\tA \t\tB \t\tC \t\tD \t\tE');
-  debugger;
-  for (i=0; i<80; i++) {
-    if (i>=0 && i<20) {
-      f = (common.and(b, c) | ((~b) & d)) % 0x100000000;
-      k = 0x5A827999;
-    }
-    if (i>=20 && i<40) {
-      f = (b ^ c ^ d) % 0x100000000;
-      k = 0x6ED9EBA1;
-    }
-    if (i>=40 && i<60) {
-      f = (common.and(b, c) | (b & d) | (c & d)) % 0x100000000;
-      k = 0x8F1BBCDC;
-    }
-    if (i>=60 && i<80) {
-      f = (b ^ c ^ d) % 0x100000000;
-      k = 0xCA62C1D6;
-    }
+  var k = [0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6]; 
 
-    temp = (common.rotl32(a, 5) + f + e + k + w[i]) % 0x100000000;
+  var t = 0;
+  // Main loop
+  console.log('\tA \t\tB \t\tC \t\tD \t\tE');
+  for (var i=0; i<80; i++) {
+    var s = Math.floor(i/20);
+    f = f_func(s, b, c, d);
+    t = (((a << 5) | (a >>> 27)) + f + e + k[s] + w[i]) & 0xffffffff;
     e = d;
     d = c;
-    c = common.rotl32(b, 30) % 0x100000000;
+    c = (b << 30) | (b >>> 2);
     b = a;
-    a = temp;
+    a = t;
 
     console.log(util.format('t = %d\t%s\t%s\t%s\t%s\t%s', i,
           common.zpad(a.toString(16),8), common.zpad(b.toString(16),8), 
@@ -61,10 +53,10 @@ exports.sha1 = function(message) {
   var ret = null;
   var h = [];
   h[0] = 0x67452301;
-  h[1] = 0xEFCDAB89;
-  h[2] = 0x98BADCFE;
+  h[1] = 0xefcdab89;
+  h[2] = 0x98badcfe;
   h[3] = 0x10325476;
-  h[4] = 0xC3D2E1F0;
+  h[4] = 0xc3d2e1f0;
   console.log(common.printarr(h,16));
 
   // Break message into results.m 512-bit (64 byte) chunks
@@ -81,26 +73,25 @@ exports.sha1 = function(message) {
 
     // Extend those 16 chunks into 80 chunks
     for (j=16; j<80; j++) {
-      w[j] = common.rotl32(w[j-3] ^ w[j-8] ^ w[j-14] ^ w[j-16], 1) % 0x100000000;
+      var n = w[j-3] ^ w[j-8] ^ w[j-14] ^ w[j-16];
+      w[j] = (n << 1) | (n >>> 31);
     }
 
     // Execute main loop for this chunk
     ret = sha1_hash_loop(w, h); 
 
     // Add this chunk's hash to the result
-    h[0] = (h[0] + ret.a) % 0x100000000;
-    h[1] = (h[1] + ret.b) % 0x100000000;
-    h[2] = (h[2] + ret.c) % 0x100000000;
-    h[3] = (h[3] + ret.d) % 0x100000000;
-    h[4] = (h[4] + ret.e) % 0x100000000;
-    //console.log(common.printarr(h,16));
+    h[0] = (h[0] + ret.a) & 0xffffffff;
+    h[1] = (h[1] + ret.b) & 0xffffffff;
+    h[2] = (h[2] + ret.c) & 0xffffffff;
+    h[3] = (h[3] + ret.d) & 0xffffffff;
+    h[4] = (h[4] + ret.e) & 0xffffffff;
   }
 
   // Calculate the 160-bit final hash value 
   var hh = '', hi;
   for (i=0; i<h.length; i++) {
     hi = common.zpad(h[i].toString(16), 8);
-    
     hh = hh + hi;
   }
   return hh;
@@ -130,23 +121,17 @@ exports.preread_sha1 = function(fsize) {
 // integer representing the original length of the message in bits.
 exports.postread_sha1 = function(buff, results, numbytes) {
   var i = 0;
-  //console.log(util.format('%j', results));
-  //for (i = 0; i<buff.length; i++) {
-  //  console.log(buff.readUInt8(i).toString(16));
-  //}
+  
   // Make first byte after message 0x80 (10000000)
   var n = 0x80;
   for (i=0; i<(results.x+1)/8; i++) {
     buff.writeUInt8(n, numbytes+i);
-    //console.log(buff.readUInt8(numbytes+1).toString(16));
     n = 0x0;
   }
 
   // Append the 64-bit message length to the end of the buffer
   buff.writeUInt32BE(results.nb, numbytes+i+4);
-  //console.log(buff.readUInt32BE(numbytes+i+4).toString(16));
 
-  //console.log(JSON.stringify(buff));
   return {buff: buff};
 };
 

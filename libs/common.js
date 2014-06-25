@@ -11,7 +11,7 @@ exports.rotr32 = function(value, shift) {
 };
 
 // Pad start of string with zeroes until it has a length of len
-var zpad = function(str, len) {
+var zpad = exports.zpad = function(str, len) {
   var out = '';
   var i = 0;
   if (str.length >= len) {
@@ -23,7 +23,6 @@ var zpad = function(str, len) {
   out += str;
   return out;
 };
-exports.zpad = zpad;
 
 exports.printarr = function(arr, base, numpad, isbare) {
   var i=0, j=0;
