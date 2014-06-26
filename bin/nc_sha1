@@ -1,8 +1,6 @@
 #!/usr/local/bin/node --harmony
 
-var fs = require('fs')
-  , nc = require(__dirname + '/../')
-  ;
+var nc = require(__dirname + '/../');
 
 var input = process.argv.slice(2).join(' ');
 
